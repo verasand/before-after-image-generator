@@ -24,3 +24,18 @@ comparison-generator/
 
 - **README.md**  
   This documentation file, which explains the project.
+
+## Input and Output Examples
+
+To demonstrate the functionality of the application, you can find examples of input and output images below:
+
+### Input Images
+
+![Before Image](examples/input/before.jpg)
+![Before Image](examples/input/after.jpg)
+
+### Output Images
+
+![After Image](examples/output/output.jpg)
+
+Feel free to add your own images to these folders to test the application.
