@@ -36,6 +36,6 @@ To demonstrate the functionality of the application, you can find examples of in
 
 ### Output Images
 
-![After Image](examples/output/output.jpg)
+![After Image](examples/output/output.png)
 
 Feel free to add your own images to these folders to test the application.
