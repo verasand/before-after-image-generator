@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Before & After Image Generator</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter font -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for file input */
+        input[type="file"]::file-selector-button {
+            margin-right: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            border: 0;
+            font-size: 0.875rem;
+            font-weight: 600;
+            background-color: #e0f2fe; /* blue-50 */
+            color: #0c4a6e; /* blue-700 */
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background-color: #bae6fd; /* blue-100 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900 min-h-screen flex items-center justify-center p-4">
+
+    <main class="bg-white shadow-2xl rounded-2xl p-6 sm:p-10 max-w-5xl w-full">
+        <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-8">
+            Before & After Image Generator
+        </h1>
+
+        <!-- Upload Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+            <!-- Before Image Card -->
+            <div class="flex flex-col">
+                <h2 class="text-2xl font-semibold text-blue-600 mb-4 text-center">
+                    1. Upload "Before" Image
+                </h2>
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex-1">
+                    <input type="file" id="before-upload" accept="image/*" class="block w-full text-sm text-gray-600">
+                    <div class="mt-4 w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img id="before-preview" src="" alt="Before Preview" class="hidden w-full h-full object-cover">
+                        <span id="before-placeholder" class="text-gray-500">Image Preview</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- After Image Card -->
+            <div class="flex flex-col">
+                <h2 class="text-2xl font-semibold text-purple-600 mb-4 text-center">
+                    2. Upload "After" Image
+                </h2>
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex-1">
+                    <input type="file" id="after-upload" accept="image/*" class="block w-full text-sm text-gray-600">
+                    <div class="mt-4 w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img id="after-preview" src="" alt="After Preview" class="hidden w-full h-full object-cover">
+                        <span id="after-placeholder" class="text-gray-500">Image Preview</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="mt-8 text-center flex flex-col sm:flex-row justify-center gap-4">
+            <button id="generate-btn" class="w-full sm:w-auto bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-all transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:scale-100" disabled>
+                3. Generate Comparison
+            </button>
+            <button id="clear-btn" class="w-full sm:w-auto bg-gray-500 text-white font-medium py-3 px-8 rounded-lg shadow-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 transition-all">
+                Clear All
+            </button>
+        </div>
+
+        <!-- Message Box -->
+        <div id="message-box" class="mt-6 text-center text-red-600 font-medium hidden"></div>
+
+        <!-- Result Section -->
+        <div id="result-section" class="mt-10 pt-6 border-t border-gray-200 text-center hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">
+                Your Comparison Image is Ready!
+            </h2>
+            <div class="max-w-3xl mx-auto bg-gray-100 p-4 rounded-lg shadow-inner">
+                <img id="result-image" src="" alt="Comparison Result" class="w-full h-auto object-contain rounded-md border-2 border-gray-300">
+            </div>
+            <a id="download-link" href="#" download="comparison.png" class="mt-6 inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all transform hover:scale-105">
+                Download Image
+            </a>
+        </div>
+
+    </main>
+
+    <script>
+        // Get DOM Elements
+        const beforeUpload = document.getElementById('before-upload');
+        const afterUpload = document.getElementById('after-upload');
+        const beforePreview = document.getElementById('before-preview');
+        const afterPreview = document.getElementById('after-preview');
+        const beforePlaceholder = document.getElementById('before-placeholder');
+        const afterPlaceholder = document.getElementById('after-placeholder');
+        
+        const generateBtn = document.getElementById('generate-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const messageBox = document.getElementById('message-box');
+        
+        const resultSection = document.getElementById('result-section');
+        const resultImage = document.getElementById('result-image');
+        const downloadLink = document.getElementById('download-link');
+
+        // Store image data
+        let beforeImageSrc = null;
+        let afterImageSrc = null;
+
+        /**
+         * Handles file selection and displays a preview.
+         */
+        function handleFileSelect(event, type) {
+            const file = event.target.files[0];
+            if (!file || !file.type.startsWith('image/')) {
+                showMessage('Please select a valid image file.', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const dataURL = e.target.result;
+                if (type === 'before') {
+                    beforeImageSrc = dataURL;
+                    beforePreview.src = dataURL;
+                    beforePreview.classList.remove('hidden');
+                    beforePlaceholder.classList.add('hidden');
+                } else {
+                    afterImageSrc = dataURL;
+                    afterPreview.src = dataURL;
+                    afterPreview.classList.remove('hidden');
+                    afterPlaceholder.classList.add('hidden');
+                }
+                
+                // Check if both images are uploaded to enable the generate button
+                checkEnableGenerate();
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        /**
+         * Enables the generate button if both images are present.
+         */
+        function checkEnableGenerate() {
+            if (beforeImageSrc && afterImageSrc) {
+                generateBtn.disabled = false;
+                showMessage('', 'clear'); // Clear any previous messages
+            } else {
+                generateBtn.disabled = true;
+            }
+        }
+
+        /**
+         * Displays a message to the user.
+         */
+        function showMessage(message, type = 'error') {
+            messageBox.textContent = message;
+            if (type === 'error') {
+                messageBox.classList.remove('text-green-600', 'hidden');
+                messageBox.classList.add('text-red-600');
+            } else if (type === 'success') {
+                messageBox.classList.remove('text-red-600', 'hidden');
+                messageBox.classList.add('text-green-600');
+            } else {
+                messageBox.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Generates the side-by-side comparison image on a canvas.
+         */
+        function generateComparison() {
+            if (!beforeImageSrc || !afterImageSrc) {
+                showMessage('Please upload both a "Before" and "After" image.', 'error');
+                return;
+            }
+
+            const beforeImg = new Image();
+            const afterImg = new Image();
+
+            let beforeLoaded = false;
+            let afterLoaded = false;
+
+            // This function will run when both images are loaded
+            const attemptGeneration = () => {
+                if (!beforeLoaded || !afterLoaded) return;
+
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                // --- Image Sizing Logic ---
+                // We'll scale both images to have the same height,
+                // using the maximum height of the two as the standard.
+                const h1 = beforeImg.naturalHeight;
+                const w1 = beforeImg.naturalWidth;
+                const h2 = afterImg.naturalHeight;
+                const w2 = afterImg.naturalWidth;
+
+                const maxHeight = Math.max(h1, h2);
+                
+                // Calculate new widths based on the max height, preserving aspect ratio
+                const newW1 = (w1 * maxHeight) / h1;
+                const newW2 = (w2 * maxHeight) / h2;
+
+                // --- Canvas Setup ---
+                const totalWidth = newW1 + newW2;
+                const padding = 40; // Padding for text
+                const labelHeight = 80; // Space for labels
+                const totalHeight = maxHeight + labelHeight + padding;
+
+                canvas.width = totalWidth;
+                canvas.height = totalHeight;
+
+                // --- Drawing ---
+                // 1. Fill background
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 2. Draw "Before" image
+                ctx.drawImage(beforeImg, 0, labelHeight, newW1, maxHeight);
+                
+                // 3. Draw "After" image
+                ctx.drawImage(afterImg, newW1, labelHeight, newW2, maxHeight);
+
+                // 4. Draw labels
+                ctx.font = 'bold 50px Inter, sans-serif';
+                ctx.fillStyle = '#374151'; // gray-700
+                ctx.textAlign = 'center';
+                
+                ctx.fillText('BEFORE', newW1 / 2, labelHeight - (padding / 2));
+                ctx.fillText('AFTER', newW1 + (newW2 / 2), labelHeight - (padding / 2));
+
+                // --- Output ---
+                const dataUrl = canvas.toDataURL('image/png');
+                
+                resultImage.src = dataUrl;
+                downloadLink.href = dataUrl;
+                resultSection.classList.remove('hidden');
+                
+                // Scroll to the result
+                resultSection.scrollIntoView({ behavior: 'smooth' });
+            };
+
+            // Set up onload listeners
+            beforeImg.onload = () => {
+                beforeLoaded = true;
+                attemptGeneration();
+            };
+            afterImg.onload = () => {
+                afterLoaded = true;
+                attemptGeneration();
+            };
+            
+            // Handle image loading errors
+            beforeImg.onerror = () => showMessage('Error loading the "Before" image.', 'error');
+            afterImg.onerror = () => showMessage('Error loading the "After" image.', 'error');
+
+            // Set src to trigger loading
+            beforeImg.src = beforeImageSrc;
+            afterImg.src = afterImageSrc;
+        }
+
+        /**
+         * Resets the entire application state.
+         */
+        function clearAll() {
+            beforeImageSrc = null;
+            afterImageSrc = null;
+            
+            beforeUpload.value = ''; // Clear file input
+            afterUpload.value = ''; // Clear file input
+            
+            beforePreview.src = '';
+            afterPreview.src = '';
+            
+            beforePreview.classList.add('hidden');
+            afterPreview.classList.add('hidden');
+            
+            beforePlaceholder.classList.remove('hidden');
+            afterPlaceholder.classList.remove('hidden');
+            
+            generateBtn.disabled = true;
+            resultSection.classList.add('hidden');
+            resultImage.src = '';
+            downloadLink.href = '#';
+            
+            showMessage('', 'clear');
+        }
+
+        // --- Add Event Listeners ---
+        beforeUpload.addEventListener('change', (e) => handleFileSelect(e, 'before'));
+        afterUpload.addEventListener('change', (e) => handleFileSelect(e, 'after'));
+        generateBtn.addEventListener('click', generateComparison);
+        clearBtn.addEventListener('click', clearAll);
+
+    </script>
+</body>
+</html>
