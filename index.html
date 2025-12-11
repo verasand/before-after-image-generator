@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Before & After Image Generator</title>
-    <!-- Load Tailwind CSS -->
+    <title>Ultimate Before & After Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Use Inter font -->
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Custom styles for file input */
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom File Input Styling */
         input[type="file"]::file-selector-button {
             margin-right: 1rem;
             padding: 0.5rem 1rem;
@@ -19,291 +16,394 @@
             border: 0;
             font-size: 0.875rem;
             font-weight: 600;
-            background-color: #e0f2fe; /* blue-50 */
-            color: #0c4a6e; /* blue-700 */
+            background-color: #e0f2fe; 
+            color: #0c4a6e;
             cursor: pointer;
             transition: background-color 0.2s;
         }
         input[type="file"]::file-selector-button:hover {
-            background-color: #bae6fd; /* blue-100 */
+            background-color: #bae6fd;
         }
+
+        /* SLIDER STYLES */
+        .slider-container {
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+            cursor: ew-resize;
+            width: 100%;
+            /* Eliminamos height fija - será dinámica */
+        }
+        
+        .slider-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Cambiado de cover a contain */
+            object-position: center;
+            pointer-events: none;
+            display: block;
+        }
+
+        .slider-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 50%;
+            overflow: hidden;
+            border-right: 3px solid white;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        .slider-overlay img {
+            max-width: none;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .slider-handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        /* Labels inside slider */
+        .slider-label {
+            position: absolute;
+            top: 1rem;
+            padding: 0.25rem 0.75rem;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: white;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 30;
+        }
+        .label-before { left: 1rem; }
+        .label-after { right: 1rem; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 min-h-screen flex items-center justify-center p-4">
 
     <main class="bg-white shadow-2xl rounded-2xl p-6 sm:p-10 max-w-5xl w-full">
         <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 mb-8">
-            Before & After Image Generator
+            Before & After Tool
         </h1>
 
-        <!-- Upload Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-            <!-- Before Image Card -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-8">
             <div class="flex flex-col">
-                <h2 class="text-2xl font-semibold text-blue-600 mb-4 text-center">
-                    1. Upload "Before" Image
-                </h2>
-                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex-1">
+                <h2 class="text-lg font-semibold text-blue-600 mb-2 text-center">1. Upload Before</h2>
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <input type="file" id="before-upload" accept="image/*" class="block w-full text-sm text-gray-600">
-                    <div class="mt-4 w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
-                        <img id="before-preview" src="" alt="Before Preview" class="hidden w-full h-full object-cover">
-                        <span id="before-placeholder" class="text-gray-500">Image Preview</span>
+                    <div class="mt-4 w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img id="before-preview" src="" class="hidden w-full h-full object-cover">
+                        <span id="before-placeholder" class="text-gray-500 text-sm">Preview</span>
                     </div>
                 </div>
             </div>
 
-            <!-- After Image Card -->
             <div class="flex flex-col">
-                <h2 class="text-2xl font-semibold text-purple-600 mb-4 text-center">
-                    2. Upload "After" Image
-                </h2>
-                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex-1">
+                <h2 class="text-lg font-semibold text-purple-600 mb-2 text-center">2. Upload After</h2>
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <input type="file" id="after-upload" accept="image/*" class="block w-full text-sm text-gray-600">
-                    <div class="mt-4 w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
-                        <img id="after-preview" src="" alt="After Preview" class="hidden w-full h-full object-cover">
-                        <span id="after-placeholder" class="text-gray-500">Image Preview</span>
+                    <div class="mt-4 w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
+                        <img id="after-preview" src="" class="hidden w-full h-full object-cover">
+                        <span id="after-placeholder" class="text-gray-500 text-sm">Preview</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Controls -->
-        <div class="mt-8 text-center flex flex-col sm:flex-row justify-center gap-4">
-            <button id="generate-btn" class="w-full sm:w-auto bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-all transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:scale-100" disabled>
-                3. Generate Comparison
+        <div class="text-center flex flex-col sm:flex-row justify-center gap-4 border-b border-gray-200 pb-8 mb-8">
+            <button id="generate-btn" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all" disabled>
+                Generate Comparison
             </button>
-            <button id="clear-btn" class="w-full sm:w-auto bg-gray-500 text-white font-medium py-3 px-8 rounded-lg shadow-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 transition-all">
+            <button id="clear-btn" class="bg-gray-500 text-white font-medium py-3 px-8 rounded-lg shadow hover:bg-gray-600 transition-all">
                 Clear All
             </button>
         </div>
 
-        <!-- Message Box -->
-        <div id="message-box" class="mt-6 text-center text-red-600 font-medium hidden"></div>
+        <div id="result-section" class="hidden space-y-12">
+            
+            <div class="flex flex-col items-center">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    Interactive Preview
+                </h2>
+                <p class="text-gray-500 mb-4 text-sm">Drag or hover to compare</p>
+                
+                <div id="slider-container" class="slider-container max-w-4xl rounded-xl shadow-xl bg-gray-200">
+                    
+                    <span class="slider-label label-after">AFTER</span>
+                    <span class="slider-label label-before">BEFORE</span>
 
-        <!-- Result Section -->
-        <div id="result-section" class="mt-10 pt-6 border-t border-gray-200 text-center hidden">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">
-                Your Comparison Image is Ready!
-            </h2>
-            <div class="max-w-3xl mx-auto bg-gray-100 p-4 rounded-lg shadow-inner">
-                <img id="result-image" src="" alt="Comparison Result" class="w-full h-auto object-contain rounded-md border-2 border-gray-300">
+                    <img id="slider-img-after" src="" alt="After" class="slider-image">
+                    
+                    <div id="slider-overlay" class="slider-overlay">
+                        <img id="slider-img-before" src="" alt="Before" class="slider-image">
+                    </div>
+
+                    <div id="slider-handle" class="slider-handle">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path></svg>
+                    </div>
+                </div>
             </div>
-            <a id="download-link" href="#" download="comparison.png" class="mt-6 inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all transform hover:scale-105">
-                Download Image
-            </a>
+
+            <div class="flex flex-col items-center pt-8 border-t border-gray-200">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Download Static Image
+                </h2>
+                <div class="max-w-2xl w-full bg-gray-100 p-2 rounded-lg mb-4">
+                    <img id="static-result-image" src="" class="w-full h-auto rounded border border-gray-300">
+                </div>
+                <a id="download-link" href="#" download="comparison.png" class="bg-green-600 text-white font-bold py-3 px-8 rounded-lg shadow hover:bg-green-700 transition-all transform hover:scale-105">
+                    Download Side-by-Side
+                </a>
+            </div>
         </div>
 
     </main>
 
     <script>
-        // Get DOM Elements
+        // --- VARIABLES ---
         const beforeUpload = document.getElementById('before-upload');
         const afterUpload = document.getElementById('after-upload');
         const beforePreview = document.getElementById('before-preview');
         const afterPreview = document.getElementById('after-preview');
-        const beforePlaceholder = document.getElementById('before-placeholder');
-        const afterPlaceholder = document.getElementById('after-placeholder');
-        
         const generateBtn = document.getElementById('generate-btn');
         const clearBtn = document.getElementById('clear-btn');
-        const messageBox = document.getElementById('message-box');
-        
         const resultSection = document.getElementById('result-section');
-        const resultImage = document.getElementById('result-image');
+        
+        // Static Image Elements
+        const staticResultImage = document.getElementById('static-result-image');
         const downloadLink = document.getElementById('download-link');
 
-        // Store image data
-        let beforeImageSrc = null;
-        let afterImageSrc = null;
+        // Slider Elements
+        const sliderContainer = document.getElementById('slider-container');
+        const sliderOverlay = document.getElementById('slider-overlay');
+        const sliderHandle = document.getElementById('slider-handle');
+        const sliderImgBefore = document.getElementById('slider-img-before');
+        const sliderImgAfter = document.getElementById('slider-img-after');
 
-        /**
-         * Handles file selection and displays a preview.
-         */
-        function handleFileSelect(event, type) {
-            const file = event.target.files[0];
-            if (!file || !file.type.startsWith('image/')) {
-                showMessage('Please select a valid image file.', 'error');
-                return;
-            }
+        let beforeSrc = null;
+        let afterSrc = null;
+
+        // --- UPLOAD HANDLERS ---
+        function handleUpload(e, type) {
+            const file = e.target.files[0];
+            if (!file) return;
 
             const reader = new FileReader();
-
-            reader.onload = (e) => {
-                const dataURL = e.target.result;
+            reader.onload = (event) => {
+                const src = event.target.result;
                 if (type === 'before') {
-                    beforeImageSrc = dataURL;
-                    beforePreview.src = dataURL;
+                    beforeSrc = src;
+                    beforePreview.src = src;
                     beforePreview.classList.remove('hidden');
-                    beforePlaceholder.classList.add('hidden');
+                    document.getElementById('before-placeholder').classList.add('hidden');
                 } else {
-                    afterImageSrc = dataURL;
-                    afterPreview.src = dataURL;
+                    afterSrc = src;
+                    afterPreview.src = src;
                     afterPreview.classList.remove('hidden');
-                    afterPlaceholder.classList.add('hidden');
+                    document.getElementById('after-placeholder').classList.add('hidden');
                 }
                 
-                // Check if both images are uploaded to enable the generate button
-                checkEnableGenerate();
+                if (beforeSrc && afterSrc) generateBtn.disabled = false;
             };
-
             reader.readAsDataURL(file);
         }
 
-        /**
-         * Enables the generate button if both images are present.
-         */
-        function checkEnableGenerate() {
-            if (beforeImageSrc && afterImageSrc) {
-                generateBtn.disabled = false;
-                showMessage('', 'clear'); // Clear any previous messages
-            } else {
-                generateBtn.disabled = true;
-            }
-        }
+        beforeUpload.addEventListener('change', (e) => handleUpload(e, 'before'));
+        afterUpload.addEventListener('change', (e) => handleUpload(e, 'after'));
 
-        /**
-         * Displays a message to the user.
-         */
-        function showMessage(message, type = 'error') {
-            messageBox.textContent = message;
-            if (type === 'error') {
-                messageBox.classList.remove('text-green-600', 'hidden');
-                messageBox.classList.add('text-red-600');
-            } else if (type === 'success') {
-                messageBox.classList.remove('text-red-600', 'hidden');
-                messageBox.classList.add('text-green-600');
-            } else {
-                messageBox.classList.add('hidden');
-            }
-        }
+        // --- FUNCIÓN PARA CALCULAR Y ESTABLECER ALTURA DINÁMICA ---
+        function setDynamicHeight() {
+            const img1 = new Image();
+            const img2 = new Image();
+            img1.src = beforeSrc;
+            img2.src = afterSrc;
 
-        /**
-         * Generates the side-by-side comparison image on a canvas.
-         */
-        function generateComparison() {
-            if (!beforeImageSrc || !afterImageSrc) {
-                showMessage('Please upload both a "Before" and "After" image.', 'error');
-                return;
-            }
+            let loadedCount = 0;
+            const onLoad = () => {
+                loadedCount++;
+                if (loadedCount < 2) return;
 
-            const beforeImg = new Image();
-            const afterImg = new Image();
-
-            let beforeLoaded = false;
-            let afterLoaded = false;
-
-            // This function will run when both images are loaded
-            const attemptGeneration = () => {
-                if (!beforeLoaded || !afterLoaded) return;
-
-                // Create canvas
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-
-                // --- Image Sizing Logic ---
-                // We'll scale both images to have the same height,
-                // using the maximum height of the two as the standard.
-                const h1 = beforeImg.naturalHeight;
-                const w1 = beforeImg.naturalWidth;
-                const h2 = afterImg.naturalHeight;
-                const w2 = afterImg.naturalWidth;
-
-                const maxHeight = Math.max(h1, h2);
+                // Obtener el ancho actual del contenedor
+                const containerWidth = sliderContainer.offsetWidth;
                 
-                // Calculate new widths based on the max height, preserving aspect ratio
-                const newW1 = (w1 * maxHeight) / h1;
-                const newW2 = (w2 * maxHeight) / h2;
+                // Calcular aspect ratios
+                const ratio1 = img1.naturalHeight / img1.naturalWidth;
+                const ratio2 = img2.naturalHeight / img2.naturalWidth;
+                
+                // Usar el aspect ratio más alto para que ambas imágenes se vean completas
+                const maxRatio = Math.max(ratio1, ratio2);
+                
+                // Calcular la altura basada en el ancho del contenedor
+                const calculatedHeight = containerWidth * maxRatio;
+                
+                // Establecer altura del contenedor
+                sliderContainer.style.height = calculatedHeight + 'px';
+                
+                // Asegurar que la imagen del overlay tenga el ancho correcto
+                sliderImgBefore.style.width = containerWidth + 'px';
+            };
 
-                // --- Canvas Setup ---
-                const totalWidth = newW1 + newW2;
-                const padding = 40; // Padding for text
-                const labelHeight = 80; // Space for labels
-                const totalHeight = maxHeight + labelHeight + padding;
+            img1.onload = onLoad;
+            img2.onload = onLoad;
+        }
 
-                canvas.width = totalWidth;
-                canvas.height = totalHeight;
+        // --- GENERATE FUNCTION ---
+        generateBtn.addEventListener('click', () => {
+            if (!beforeSrc || !afterSrc) return;
 
-                // --- Drawing ---
-                // 1. Fill background
+            // 1. Setup Slider
+            sliderImgBefore.src = beforeSrc;
+            sliderImgAfter.src = afterSrc;
+            
+            // 2. Show Results
+            resultSection.classList.remove('hidden');
+
+            // 3. Calcular y establecer altura dinámica
+            setTimeout(() => {
+                setDynamicHeight();
+                // Reset slider position to center después de calcular altura
+                updateSliderPosition(sliderContainer.offsetWidth / 2);
+            }, 50);
+
+            // 4. Generate Static Side-by-Side Image (Canvas)
+            generateStaticImage();
+            
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // --- SLIDER LOGIC ---
+        let isDragging = false;
+
+        function updateSliderPosition(x) {
+            const containerRect = sliderContainer.getBoundingClientRect();
+            const width = containerRect.width;
+            
+            // Ensure x is within bounds
+            if (x < 0) x = 0;
+            if (x > width) x = width;
+
+            const percentage = (x / width) * 100;
+
+            // Update DOM
+            sliderOverlay.style.width = `${percentage}%`;
+            sliderHandle.style.left = `${percentage}%`;
+        }
+
+        function handleMove(clientX) {
+            const containerRect = sliderContainer.getBoundingClientRect();
+            const x = clientX - containerRect.left;
+            updateSliderPosition(x);
+        }
+
+        // Mouse Events
+        sliderContainer.addEventListener('mousedown', () => isDragging = true);
+        window.addEventListener('mouseup', () => isDragging = false);
+        sliderContainer.addEventListener('mousemove', (e) => {
+            handleMove(e.clientX);
+        });
+
+        // Touch Events (Mobile)
+        sliderContainer.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            handleMove(e.touches[0].clientX);
+        }, {passive: true});
+        
+        sliderContainer.addEventListener('touchmove', (e) => {
+            if (isDragging) handleMove(e.touches[0].clientX);
+        }, {passive: true});
+
+        sliderContainer.addEventListener('touchend', () => isDragging = false);
+
+        // Window Resize: Recalcular altura y mantener proporción
+        window.addEventListener('resize', () => {
+            if (!resultSection.classList.contains('hidden') && beforeSrc && afterSrc) {
+                setDynamicHeight();
+            }
+        });
+
+        // --- STATIC IMAGE GENERATION (Canvas) ---
+        function generateStaticImage() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img1 = new Image();
+            const img2 = new Image();
+
+            img1.src = beforeSrc;
+            img2.src = afterSrc;
+
+            let loadedCount = 0;
+            const onImageLoad = () => {
+                loadedCount++;
+                if (loadedCount < 2) return;
+
+                // Sizing Logic: Match heights
+                const h = Math.max(img1.naturalHeight, img2.naturalHeight);
+                const w1 = (img1.naturalWidth * h) / img1.naturalHeight;
+                const w2 = (img2.naturalWidth * h) / img2.naturalHeight;
+
+                canvas.width = w1 + w2;
+                canvas.height = h + 80;
+
+                // Background
                 ctx.fillStyle = 'white';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // 2. Draw "Before" image
-                ctx.drawImage(beforeImg, 0, labelHeight, newW1, maxHeight);
-                
-                // 3. Draw "After" image
-                ctx.drawImage(afterImg, newW1, labelHeight, newW2, maxHeight);
+                // Draw Images
+                ctx.drawImage(img1, 0, 80, w1, h);
+                ctx.drawImage(img2, w1, 80, w2, h);
 
-                // 4. Draw labels
-                ctx.font = 'bold 50px Inter, sans-serif';
-                ctx.fillStyle = '#374151'; // gray-700
+                // Draw Labels
+                ctx.font = 'bold 50px sans-serif';
+                ctx.fillStyle = '#333';
                 ctx.textAlign = 'center';
-                
-                ctx.fillText('BEFORE', newW1 / 2, labelHeight - (padding / 2));
-                ctx.fillText('AFTER', newW1 + (newW2 / 2), labelHeight - (padding / 2));
+                ctx.fillText('BEFORE', w1 / 2, 55);
+                ctx.fillText('AFTER', w1 + (w2 / 2), 55);
 
-                // --- Output ---
-                const dataUrl = canvas.toDataURL('image/png');
-                
-                resultImage.src = dataUrl;
-                downloadLink.href = dataUrl;
-                resultSection.classList.remove('hidden');
-                
-                // Scroll to the result
-                resultSection.scrollIntoView({ behavior: 'smooth' });
+                // Output
+                const dataURL = canvas.toDataURL('image/png');
+                staticResultImage.src = dataURL;
+                downloadLink.href = dataURL;
             };
 
-            // Set up onload listeners
-            beforeImg.onload = () => {
-                beforeLoaded = true;
-                attemptGeneration();
-            };
-            afterImg.onload = () => {
-                afterLoaded = true;
-                attemptGeneration();
-            };
-            
-            // Handle image loading errors
-            beforeImg.onerror = () => showMessage('Error loading the "Before" image.', 'error');
-            afterImg.onerror = () => showMessage('Error loading the "After" image.', 'error');
-
-            // Set src to trigger loading
-            beforeImg.src = beforeImageSrc;
-            afterImg.src = afterImageSrc;
+            img1.onload = onImageLoad;
+            img2.onload = onImageLoad;
         }
 
-        /**
-         * Resets the entire application state.
-         */
-        function clearAll() {
-            beforeImageSrc = null;
-            afterImageSrc = null;
-            
-            beforeUpload.value = ''; // Clear file input
-            afterUpload.value = ''; // Clear file input
-            
-            beforePreview.src = '';
-            afterPreview.src = '';
-            
+        // --- CLEAR ALL ---
+        clearBtn.addEventListener('click', () => {
+            beforeSrc = null;
+            afterSrc = null;
+            beforeUpload.value = '';
+            afterUpload.value = '';
             beforePreview.classList.add('hidden');
             afterPreview.classList.add('hidden');
-            
-            beforePlaceholder.classList.remove('hidden');
-            afterPlaceholder.classList.remove('hidden');
-            
-            generateBtn.disabled = true;
+            document.getElementById('before-placeholder').classList.remove('hidden');
+            document.getElementById('after-placeholder').classList.remove('hidden');
             resultSection.classList.add('hidden');
-            resultImage.src = '';
-            downloadLink.href = '#';
-            
-            showMessage('', 'clear');
-        }
-
-        // --- Add Event Listeners ---
-        beforeUpload.addEventListener('change', (e) => handleFileSelect(e, 'before'));
-        afterUpload.addEventListener('change', (e) => handleFileSelect(e, 'after'));
-        generateBtn.addEventListener('click', generateComparison);
-        clearBtn.addEventListener('click', clearAll);
+            generateBtn.disabled = true;
+            // Reset altura del contenedor
+            sliderContainer.style.height = '';
+        });
 
     </script>
 </body>
