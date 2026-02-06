@@ -388,7 +388,11 @@
                 handleFile(file, type);
             });
 
-            dropEl.addEventListener('click', () => inputEl.click());
+            dropEl.addEventListener('click', (e) => {
+                // Avoid double-opening the picker when the native file input was clicked.
+                if (e.target === inputEl) return;
+                inputEl.click();
+            });
         }
 
         setupDropZone(beforeDrop, beforeUpload, 'before');
