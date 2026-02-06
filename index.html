@@ -34,6 +34,10 @@
             width: 100%;
             /* Eliminamos height fija - será dinámica */
         }
+
+        .slider-container.is-horizontal {
+            cursor: ns-resize;
+        }
         
         .slider-image {
             width: 100%;
@@ -49,15 +53,25 @@
             top: 0;
             left: 0;
             height: 100%;
-            width: 50%;
+            width: 100%;
             overflow: hidden;
             border-right: 3px solid white;
             box-shadow: 5px 0 15px rgba(0,0,0,0.3);
             z-index: 10;
+            clip-path: inset(0 50% 0 0);
+        }
+
+        .slider-container.is-horizontal .slider-overlay {
+            border-right: none;
+            border-bottom: 3px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
         .slider-overlay img {
             max-width: none;
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: contain;
@@ -78,6 +92,11 @@
             justify-content: center;
             z-index: 20;
             pointer-events: none;
+        }
+
+        .slider-container.is-horizontal .slider-handle {
+            left: 50%;
+            top: 50%;
         }
 
         /* Labels inside slider */
@@ -158,6 +177,15 @@
                     Interactive Preview
                 </h2>
                 <p class="text-gray-500 mb-4 text-sm">Drag or hover to compare</p>
+
+                <div class="mb-4 inline-flex rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
+                    <button id="toggle-vertical" class="px-4 py-2 text-sm font-semibold rounded-md bg-blue-600 text-white">
+                        Vertical Split
+                    </button>
+                    <button id="toggle-horizontal" class="px-4 py-2 text-sm font-semibold rounded-md text-gray-600 hover:bg-gray-100">
+                        Horizontal Split
+                    </button>
+                </div>
                 
                 <div id="slider-container" class="slider-container max-w-4xl rounded-xl shadow-xl bg-gray-200">
                     
@@ -203,6 +231,8 @@
         const resultSection = document.getElementById('result-section');
         const beforeDrop = document.getElementById('before-drop');
         const afterDrop = document.getElementById('after-drop');
+        const toggleVertical = document.getElementById('toggle-vertical');
+        const toggleHorizontal = document.getElementById('toggle-horizontal');
         
         // Static Image Elements
         const staticResultImage = document.getElementById('static-result-image');
@@ -217,6 +247,7 @@
 
         let beforeSrc = null;
         let afterSrc = null;
+        let sliderOrientation = 'vertical';
 
         // --- UPLOAD HANDLERS ---
         function handleFile(file, type) {
@@ -331,7 +362,7 @@
             setTimeout(() => {
                 setDynamicHeight();
                 // Reset slider position to center después de calcular altura
-                updateSliderPosition(sliderContainer.offsetWidth / 2);
+                updateSliderPosition(sliderContainer.offsetWidth / 2, sliderContainer.offsetHeight / 2);
             }, 50);
 
             // 4. Generate Static Side-by-Side Image (Canvas)
@@ -343,42 +374,52 @@
         // --- SLIDER LOGIC ---
         let isDragging = false;
 
-        function updateSliderPosition(x) {
+        function updateSliderPosition(x, y) {
             const containerRect = sliderContainer.getBoundingClientRect();
             const width = containerRect.width;
+            const height = containerRect.height;
             
-            // Ensure x is within bounds
-            if (x < 0) x = 0;
-            if (x > width) x = width;
+            if (sliderOrientation === 'horizontal') {
+                if (y < 0) y = 0;
+                if (y > height) y = height;
 
-            const percentage = (x / width) * 100;
+                const percentage = (y / height) * 100;
 
-            // Update DOM
-            sliderOverlay.style.width = `${percentage}%`;
-            sliderHandle.style.left = `${percentage}%`;
+                sliderOverlay.style.clipPath = `inset(0 0 ${100 - percentage}% 0)`;
+                sliderHandle.style.top = `${percentage}%`;
+            } else {
+                if (x < 0) x = 0;
+                if (x > width) x = width;
+
+                const percentage = (x / width) * 100;
+
+                sliderOverlay.style.clipPath = `inset(0 ${100 - percentage}% 0 0)`;
+                sliderHandle.style.left = `${percentage}%`;
+            }
         }
 
-        function handleMove(clientX) {
+        function handleMove(clientX, clientY) {
             const containerRect = sliderContainer.getBoundingClientRect();
             const x = clientX - containerRect.left;
-            updateSliderPosition(x);
+            const y = clientY - containerRect.top;
+            updateSliderPosition(x, y);
         }
 
         // Mouse Events
         sliderContainer.addEventListener('mousedown', () => isDragging = true);
         window.addEventListener('mouseup', () => isDragging = false);
         sliderContainer.addEventListener('mousemove', (e) => {
-            handleMove(e.clientX);
+            handleMove(e.clientX, e.clientY);
         });
 
         // Touch Events (Mobile)
         sliderContainer.addEventListener('touchstart', (e) => {
             isDragging = true;
-            handleMove(e.touches[0].clientX);
+            handleMove(e.touches[0].clientX, e.touches[0].clientY);
         }, {passive: true});
         
         sliderContainer.addEventListener('touchmove', (e) => {
-            if (isDragging) handleMove(e.touches[0].clientX);
+            if (isDragging) handleMove(e.touches[0].clientX, e.touches[0].clientY);
         }, {passive: true});
 
         sliderContainer.addEventListener('touchend', () => isDragging = false);
@@ -389,6 +430,34 @@
                 setDynamicHeight();
             }
         });
+
+        // --- ORIENTATION TOGGLE ---
+        function setOrientation(nextOrientation) {
+            sliderOrientation = nextOrientation;
+
+            if (sliderOrientation === 'horizontal') {
+                sliderContainer.classList.add('is-horizontal');
+                sliderOverlay.style.clipPath = 'inset(0 0 50% 0)';
+                sliderHandle.style.left = '50%';
+                sliderHandle.style.top = '50%';
+                toggleHorizontal.classList.add('bg-blue-600', 'text-white');
+                toggleHorizontal.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                toggleVertical.classList.remove('bg-blue-600', 'text-white');
+                toggleVertical.classList.add('text-gray-600', 'hover:bg-gray-100');
+            } else {
+                sliderContainer.classList.remove('is-horizontal');
+                sliderOverlay.style.clipPath = 'inset(0 50% 0 0)';
+                sliderHandle.style.top = '50%';
+                sliderHandle.style.left = '50%';
+                toggleVertical.classList.add('bg-blue-600', 'text-white');
+                toggleVertical.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                toggleHorizontal.classList.remove('bg-blue-600', 'text-white');
+                toggleHorizontal.classList.add('text-gray-600', 'hover:bg-gray-100');
+            }
+        }
+
+        toggleVertical.addEventListener('click', () => setOrientation('vertical'));
+        toggleHorizontal.addEventListener('click', () => setOrientation('horizontal'));
 
         // --- STATIC IMAGE GENERATION (Canvas) ---
         function generateStaticImage() {
