@@ -200,6 +200,39 @@
                         </label>
                     </div>
                 </div>
+
+                <div class="mb-6 w-full max-w-2xl rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                        <h3 class="text-sm font-semibold text-gray-700 text-left">Alignment + Crop</h3>
+                        <div class="inline-flex rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
+                            <button id="align-target-before" class="px-3 py-1.5 text-xs font-semibold rounded-md bg-blue-600 text-white">
+                                Adjust Before
+                            </button>
+                            <button id="align-target-after" class="px-3 py-1.5 text-xs font-semibold rounded-md text-gray-600 hover:bg-gray-100">
+                                Adjust After
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <label class="text-xs text-gray-600">
+                            X Offset (<span id="align-x-value">0</span>%)
+                            <input id="align-x" type="range" min="-50" max="50" value="0" class="mt-1 w-full">
+                        </label>
+                        <label class="text-xs text-gray-600">
+                            Y Offset (<span id="align-y-value">0</span>%)
+                            <input id="align-y" type="range" min="-50" max="50" value="0" class="mt-1 w-full">
+                        </label>
+                        <label class="text-xs text-gray-600">
+                            Zoom (<span id="align-scale-value">100</span>%)
+                            <input id="align-scale" type="range" min="50" max="150" value="100" class="mt-1 w-full">
+                        </label>
+                    </div>
+                    <div class="mt-3 flex justify-end">
+                        <button id="align-reset" class="text-xs font-semibold text-gray-600 hover:text-gray-900">
+                            Reset Adjustments
+                        </button>
+                    </div>
+                </div>
                 
                 <div id="slider-container" class="slider-container max-w-4xl rounded-xl shadow-xl bg-gray-200">
                     
@@ -249,6 +282,15 @@
         const toggleHorizontal = document.getElementById('toggle-horizontal');
         const labelBeforeInput = document.getElementById('label-before-input');
         const labelAfterInput = document.getElementById('label-after-input');
+        const alignTargetBefore = document.getElementById('align-target-before');
+        const alignTargetAfter = document.getElementById('align-target-after');
+        const alignX = document.getElementById('align-x');
+        const alignY = document.getElementById('align-y');
+        const alignScale = document.getElementById('align-scale');
+        const alignXValue = document.getElementById('align-x-value');
+        const alignYValue = document.getElementById('align-y-value');
+        const alignScaleValue = document.getElementById('align-scale-value');
+        const alignReset = document.getElementById('align-reset');
         
         // Static Image Elements
         const staticResultImage = document.getElementById('static-result-image');
@@ -268,6 +310,11 @@
         let sliderOrientation = 'vertical';
         let labelBeforeText = 'BEFORE';
         let labelAfterText = 'AFTER';
+        let alignTarget = 'before';
+        const alignState = {
+            before: { x: 0, y: 0, scale: 100 },
+            after: { x: 0, y: 0, scale: 100 },
+        };
 
         // --- UPLOAD HANDLERS ---
         function handleFile(file, type) {
@@ -282,11 +329,13 @@
                     beforePreview.src = src;
                     beforePreview.classList.remove('hidden');
                     document.getElementById('before-placeholder').classList.add('hidden');
+                    beforePreview.style.transform = `translate(${alignState.before.x}%, ${alignState.before.y}%) scale(${alignState.before.scale / 100})`;
                 } else {
                     afterSrc = src;
                     afterPreview.src = src;
                     afterPreview.classList.remove('hidden');
                     document.getElementById('after-placeholder').classList.add('hidden');
+                    afterPreview.style.transform = `translate(${alignState.after.x}%, ${alignState.after.y}%) scale(${alignState.after.scale / 100})`;
                 }
                 
                 if (beforeSrc && afterSrc) generateBtn.disabled = false;
@@ -346,6 +395,73 @@
         labelAfterInput.addEventListener('input', setLabelText);
         setLabelText();
 
+        // --- ALIGNMENT CONTROLS ---
+        function applyTransforms() {
+            const beforeTransform = `translate(${alignState.before.x}%, ${alignState.before.y}%) scale(${alignState.before.scale / 100})`;
+            const afterTransform = `translate(${alignState.after.x}%, ${alignState.after.y}%) scale(${alignState.after.scale / 100})`;
+
+            beforePreview.style.transform = beforeTransform;
+            afterPreview.style.transform = afterTransform;
+            sliderImgBefore.style.transform = beforeTransform;
+            sliderImgAfter.style.transform = afterTransform;
+        }
+
+        function syncAlignmentInputs() {
+            const state = alignState[alignTarget];
+            alignX.value = state.x;
+            alignY.value = state.y;
+            alignScale.value = state.scale;
+            alignXValue.textContent = state.x;
+            alignYValue.textContent = state.y;
+            alignScaleValue.textContent = state.scale;
+        }
+
+        function setAlignTarget(nextTarget) {
+            alignTarget = nextTarget;
+            if (alignTarget === 'before') {
+                alignTargetBefore.classList.add('bg-blue-600', 'text-white');
+                alignTargetBefore.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                alignTargetAfter.classList.remove('bg-blue-600', 'text-white');
+                alignTargetAfter.classList.add('text-gray-600', 'hover:bg-gray-100');
+            } else {
+                alignTargetAfter.classList.add('bg-blue-600', 'text-white');
+                alignTargetAfter.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                alignTargetBefore.classList.remove('bg-blue-600', 'text-white');
+                alignTargetBefore.classList.add('text-gray-600', 'hover:bg-gray-100');
+            }
+            syncAlignmentInputs();
+        }
+
+        function updateAlignmentState() {
+            const state = alignState[alignTarget];
+            state.x = Number(alignX.value);
+            state.y = Number(alignY.value);
+            state.scale = Number(alignScale.value);
+            alignXValue.textContent = state.x;
+            alignYValue.textContent = state.y;
+            alignScaleValue.textContent = state.scale;
+            applyTransforms();
+            if (!resultSection.classList.contains('hidden') && beforeSrc && afterSrc) {
+                generateStaticImage();
+            }
+        }
+
+        alignTargetBefore.addEventListener('click', () => setAlignTarget('before'));
+        alignTargetAfter.addEventListener('click', () => setAlignTarget('after'));
+        alignX.addEventListener('input', updateAlignmentState);
+        alignY.addEventListener('input', updateAlignmentState);
+        alignScale.addEventListener('input', updateAlignmentState);
+        alignReset.addEventListener('click', () => {
+            alignState.before = { x: 0, y: 0, scale: 100 };
+            alignState.after = { x: 0, y: 0, scale: 100 };
+            setAlignTarget('before');
+            applyTransforms();
+            if (!resultSection.classList.contains('hidden') && beforeSrc && afterSrc) {
+                generateStaticImage();
+            }
+        });
+        setAlignTarget('before');
+
         // --- FUNCIÓN PARA CALCULAR Y ESTABLECER ALTURA DINÁMICA ---
         function setDynamicHeight() {
             const img1 = new Image();
@@ -389,6 +505,7 @@
             // 1. Setup Slider
             sliderImgBefore.src = beforeSrc;
             sliderImgAfter.src = afterSrc;
+            applyTransforms();
             
             // 2. Show Results
             resultSection.classList.remove('hidden');
@@ -522,8 +639,27 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 // Draw Images
-                ctx.drawImage(img1, 0, 80, w1, h);
-                ctx.drawImage(img2, w1, 80, w2, h);
+                const beforeScale = alignState.before.scale / 100;
+                const afterScale = alignState.after.scale / 100;
+                const beforeOffsetX = (alignState.before.x / 100) * w1;
+                const beforeOffsetY = (alignState.before.y / 100) * h;
+                const afterOffsetX = (alignState.after.x / 100) * w2;
+                const afterOffsetY = (alignState.after.y / 100) * h;
+
+                ctx.drawImage(
+                    img1,
+                    0 + beforeOffsetX,
+                    80 + beforeOffsetY,
+                    w1 * beforeScale,
+                    h * beforeScale
+                );
+                ctx.drawImage(
+                    img2,
+                    w1 + afterOffsetX,
+                    80 + afterOffsetY,
+                    w2 * afterScale,
+                    h * afterScale
+                );
 
                 // Draw Labels
                 ctx.font = 'bold 50px sans-serif';
@@ -556,6 +692,10 @@
             generateBtn.disabled = true;
             // Reset altura del contenedor
             sliderContainer.style.height = '';
+            alignState.before = { x: 0, y: 0, scale: 100 };
+            alignState.after = { x: 0, y: 0, scale: 100 };
+            setAlignTarget('before');
+            applyTransforms();
         });
 
     </script>
