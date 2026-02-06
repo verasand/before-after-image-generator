@@ -32,11 +32,13 @@
             user-select: none;
             cursor: ew-resize;
             width: 100%;
+            touch-action: pan-y;
             /* Eliminamos height fija - será dinámica */
         }
 
         .slider-container.is-horizontal {
             cursor: ns-resize;
+            touch-action: pan-x;
         }
         
         .slider-image {
@@ -44,6 +46,9 @@
             height: 100%;
             object-fit: contain; /* Cambiado de cover a contain */
             object-position: center;
+            position: absolute;
+            inset: 0;
+            transform-origin: center center;
             pointer-events: none;
             display: block;
         }
@@ -69,12 +74,6 @@
 
         .slider-overlay img {
             max-width: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
         }
 
         .slider-handle {
@@ -99,6 +98,15 @@
             top: 50%;
         }
 
+        .slider-handle svg {
+            transform: rotate(90deg);
+            transform-origin: center;
+        }
+
+        .slider-container.is-horizontal .slider-handle svg {
+            transform: rotate(0deg);
+        }
+
         /* Labels inside slider */
         .slider-label {
             position: absolute;
@@ -114,6 +122,12 @@
         }
         .label-before { left: 1rem; }
         .label-after { right: 1rem; }
+
+        .slider-container.is-horizontal .label-after {
+            top: auto;
+            bottom: 1rem;
+            right: 1rem;
+        }
 
         /* Drag & Drop */
         .drop-zone {
@@ -568,13 +582,21 @@
         sliderContainer.addEventListener('touchstart', (e) => {
             isDragging = true;
             handleMove(e.touches[0].clientX, e.touches[0].clientY);
-        }, {passive: true});
+            if (sliderOrientation === 'horizontal') {
+                e.preventDefault();
+            }
+        }, {passive: false});
         
         sliderContainer.addEventListener('touchmove', (e) => {
-            if (isDragging) handleMove(e.touches[0].clientX, e.touches[0].clientY);
-        }, {passive: true});
+            if (!isDragging) return;
+            if (sliderOrientation === 'horizontal') {
+                e.preventDefault();
+            }
+            handleMove(e.touches[0].clientX, e.touches[0].clientY);
+        }, {passive: false});
 
         sliderContainer.addEventListener('touchend', () => isDragging = false);
+        sliderContainer.addEventListener('touchcancel', () => isDragging = false);
 
         // Window Resize: Recalcular altura y mantener proporción
         window.addEventListener('resize', () => {

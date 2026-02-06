@@ -1,0 +1,27 @@
+{
+  "name": "before-after-image-generator",
+  "version": "1.0.0",
+  "description": "This is a simple web project to create a side-by-side comparison image from two pictures uploaded by the user: a **\"Before\"** image and an **\"After\"** image.  \r The application combines both images onto a single canvas and allows the user to download the final result.",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "dev": "browser-sync start --server --files \"index.html\" --host 0.0.0.0 --port 8000 --no-open"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/verasand/before-after-image-generator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/verasand/before-after-image-generator/issues"
+  },
+  "homepage": "https://github.com/verasand/before-after-image-generator#readme",
+  "devDependencies": {
+    "browser-sync": "^3.0.4"
+  }
+}
