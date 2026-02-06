@@ -142,13 +142,15 @@ export default function App() {
   );
 
   const setDynamicHeight = useCallback(async () => {
-    if (!beforeSrc || !afterSrc || !sliderContainerRef.current) return;
+    if (!beforeSrc || !afterSrc || !sliderContainerRef.current) return false;
     const [img1, img2] = await Promise.all([loadImage(beforeSrc), loadImage(afterSrc)]);
     const containerWidth = sliderContainerRef.current.offsetWidth;
+    if (!containerWidth) return false;
     const ratio1 = img1.naturalHeight / img1.naturalWidth;
     const ratio2 = img2.naturalHeight / img2.naturalWidth;
     const calculatedHeight = Math.max(ratio1, ratio2) * containerWidth;
     sliderContainerRef.current.style.height = `${calculatedHeight}px`;
+    return true;
   }, [beforeSrc, afterSrc]);
 
   const generateStaticImage = useCallback(async () => {
@@ -194,9 +196,11 @@ export default function App() {
       const rawX = clientX - rect.left;
       const rawY = clientY - rect.top;
       if (sliderOrientation === "horizontal") {
+        if (!rect.height) return;
         const clampedY = Math.max(0, Math.min(rawY, rect.height));
         setSliderSplit((clampedY / rect.height) * 100);
       } else {
+        if (!rect.width) return;
         const clampedX = Math.max(0, Math.min(rawX, rect.width));
         setSliderSplit((clampedX / rect.width) * 100);
       }
@@ -211,18 +215,39 @@ export default function App() {
 
   useEffect(() => {
     if (!isResultVisible || !canGenerate) return;
+    let frameOne = 0;
+    let frameTwo = 0;
+    let timeout = 0;
+
+    const run = () => {
+      setDynamicHeight().then((isReady) => {
+        if (isReady) return;
+        timeout = window.setTimeout(() => {
+          setDynamicHeight().catch(() => {});
+        }, 120);
+      });
+    };
+
+    frameOne = window.requestAnimationFrame(() => {
+      frameTwo = window.requestAnimationFrame(run);
+    });
+
     const onResize = () => {
       setDynamicHeight().catch(() => {});
     };
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    return () => {
+      window.cancelAnimationFrame(frameOne);
+      window.cancelAnimationFrame(frameTwo);
+      if (timeout) window.clearTimeout(timeout);
+      window.removeEventListener("resize", onResize);
+    };
   }, [canGenerate, isResultVisible, setDynamicHeight]);
 
-  const onGenerate = async () => {
+  const onGenerate = () => {
     if (!canGenerate) return;
     setIsResultVisible(true);
     setSliderSplit(50);
-    await setDynamicHeight();
   };
 
   const onClear = () => {
