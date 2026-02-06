@@ -99,12 +99,12 @@ export default function App() {
   const [isResultVisible, setIsResultVisible] = useState(false);
   const [sliderSplit, setSliderSplit] = useState(50);
   const [staticImageData, setStaticImageData] = useState("");
-  const [isDragging, setIsDragging] = useState(false);
   const [dragOver, setDragOver] = useState({ before: false, after: false });
 
   const beforeInputRef = useRef(null);
   const afterInputRef = useRef(null);
   const sliderContainerRef = useRef(null);
+  const isDraggingRef = useRef(false);
 
   const canGenerate = Boolean(beforeSrc && afterSrc);
 
@@ -218,17 +218,6 @@ export default function App() {
     return () => window.removeEventListener("resize", onResize);
   }, [canGenerate, isResultVisible, setDynamicHeight]);
 
-  useEffect(() => {
-    if (!isDragging) return;
-    const handlePointerUp = () => setIsDragging(false);
-    window.addEventListener("pointerup", handlePointerUp);
-    window.addEventListener("pointercancel", handlePointerUp);
-    return () => {
-      window.removeEventListener("pointerup", handlePointerUp);
-      window.removeEventListener("pointercancel", handlePointerUp);
-    };
-  }, [isDragging]);
-
   const onGenerate = async () => {
     if (!canGenerate) return;
     setIsResultVisible(true);
@@ -237,6 +226,7 @@ export default function App() {
   };
 
   const onClear = () => {
+    isDraggingRef.current = false;
     setBeforeSrc(null);
     setAfterSrc(null);
     setIsResultVisible(false);
@@ -426,12 +416,25 @@ export default function App() {
                   sliderOrientation === "horizontal" ? "is-horizontal" : ""
                 }`}
                 onPointerDown={(event) => {
-                  setIsDragging(true);
+                  isDraggingRef.current = true;
+                  event.currentTarget.setPointerCapture(event.pointerId);
                   updateSliderFromClientPosition(event.clientX, event.clientY);
                 }}
                 onPointerMove={(event) => {
-                  if (!isDragging && event.pointerType !== "mouse") return;
+                  if (!isDraggingRef.current && event.pointerType !== "mouse") return;
                   updateSliderFromClientPosition(event.clientX, event.clientY);
+                }}
+                onPointerUp={(event) => {
+                  isDraggingRef.current = false;
+                  if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                  }
+                }}
+                onPointerCancel={(event) => {
+                  isDraggingRef.current = false;
+                  if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                  }
                 }}
               >
                 <span className="slider-label label-after">{labelAfterText.trim() || "AFTER"}</span>
