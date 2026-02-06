@@ -42,6 +42,21 @@
 
 ---
 
+## 2026-02-06 (Splitter First Render Reliability)
+- Summary: Fixed a render-timing bug where the splitter preview sometimes required pressing "Generate Comparison" twice to appear correctly.
+- Details:
+  - Identified race condition: dynamic height calculation was executed before the slider container had a stable post-render width.
+  - Moved initial dynamic sizing out of the generate click handler and into a post-render effect.
+  - Added a double `requestAnimationFrame` scheduling pattern plus short retry fallback to ensure the container is measurable.
+  - Added guards to avoid splitter calculations when container dimensions are zero.
+  - Preserved existing desktop and mobile pointer interaction behavior.
+- Files changed:
+  - src/App.jsx
+- Notes / Next steps:
+  - Add an end-to-end regression test to verify splitter preview initializes correctly on first generate action.
+
+---
+
 ## Template
 - Date: YYYY-MM-DD
 - Summary:
