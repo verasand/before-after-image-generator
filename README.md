@@ -1,41 +1,56 @@
-# "Before & After" Comparison Generator
+# Before & After Image Generator
 
-This is a simple web project to create a side-by-side comparison image from two pictures uploaded by the user: a **"Before"** image and an **"After"** image.  
-The application combines both images onto a single canvas and allows the user to download the final result.
+Create clean before/after comparisons from two images. The app lets you preview a draggable split view, fine‑tune alignment, and export a static side‑by‑side image for sharing.
+
+## Highlights
+- Interactive before/after slider with vertical or horizontal split
+- Live label editor (BEFORE / AFTER)
+- Alignment controls (X/Y offset + zoom) per image
+- One‑click download of a static side‑by‑side PNG
+- Mobile‑friendly touch controls
+
+## Quick Start
+Open `index.html` in any modern browser and upload two images.
+
+## Local Dev With Live Reload
+If you want mobile testing over Wi‑Fi and auto‑reload on save:
+
+```powershell
+npm install
+npm run dev
+```
+
+Then open the site on your phone:
+```
+http://<YOUR_LOCAL_IP>:8000/index.html
+```
+
+## How It Works
+Everything lives in a single file (`index.html`):
+- HTML: structure
+- Tailwind CSS (CDN): styling
+- JavaScript: slider logic, alignment, and PNG export
 
 ## Project Structure
+```
+before-after-image-generator/
+├── index.html
+├── package.json
+├── package-lock.json
+├── README.md
+└── examples/
+    ├── input/
+    └── output/
+```
 
-Since all the functionality (HTML, CSS, and JavaScript) is contained within a single file, the structure is very simple:
+## Examples
+Input:
+- `examples/input/before.jpg`
+- `examples/input/after.jpg`
 
-comparison-generator/
-│
-├── .git/
-├── image-comparison-generator.html
-└── README.md
+Output:
+- `examples/output/output.png`
 
-
-### File Descriptions
-
-- **image-comparison-generator.html**  
-  The single file that contains all of the application's code:
-  - HTML for structure  
-  - Tailwind CSS for styling  
-  - JavaScript for functionality and image processing
-
-- **README.md**  
-  This documentation file, which explains the project.
-
-## Input and Output Examples
-
-To demonstrate the functionality of the application, you can find examples of input and output images below:
-
-### Input Images
-
-![Before Image](examples/input/before.jpg)
-![Before Image](examples/input/after.jpg)
-
-### Output Images
-
-![After Image](examples/output/output.png)
-
-Feel free to add your own images to these folders to test the application.
+## Notes
+- The styling uses Tailwind via CDN, so an internet connection is required unless you bundle CSS locally.
+- For best results, use images with similar aspect ratios.
