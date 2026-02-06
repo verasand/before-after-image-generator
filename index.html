@@ -186,6 +186,20 @@
                         Horizontal Split
                     </button>
                 </div>
+
+                <div class="mb-5 w-full max-w-2xl rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+                    <h3 class="text-sm font-semibold text-gray-700 mb-3 text-left">Label Editor</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="text-sm text-gray-600">
+                            Before Label
+                            <input id="label-before-input" type="text" value="BEFORE" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                        </label>
+                        <label class="text-sm text-gray-600">
+                            After Label
+                            <input id="label-after-input" type="text" value="AFTER" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                        </label>
+                    </div>
+                </div>
                 
                 <div id="slider-container" class="slider-container max-w-4xl rounded-xl shadow-xl bg-gray-200">
                     
@@ -233,6 +247,8 @@
         const afterDrop = document.getElementById('after-drop');
         const toggleVertical = document.getElementById('toggle-vertical');
         const toggleHorizontal = document.getElementById('toggle-horizontal');
+        const labelBeforeInput = document.getElementById('label-before-input');
+        const labelAfterInput = document.getElementById('label-after-input');
         
         // Static Image Elements
         const staticResultImage = document.getElementById('static-result-image');
@@ -244,10 +260,14 @@
         const sliderHandle = document.getElementById('slider-handle');
         const sliderImgBefore = document.getElementById('slider-img-before');
         const sliderImgAfter = document.getElementById('slider-img-after');
+        const sliderLabelBefore = document.querySelector('.label-before');
+        const sliderLabelAfter = document.querySelector('.label-after');
 
         let beforeSrc = null;
         let afterSrc = null;
         let sliderOrientation = 'vertical';
+        let labelBeforeText = 'BEFORE';
+        let labelAfterText = 'AFTER';
 
         // --- UPLOAD HANDLERS ---
         function handleFile(file, type) {
@@ -310,6 +330,21 @@
 
         setupDropZone(beforeDrop, beforeUpload, 'before');
         setupDropZone(afterDrop, afterUpload, 'after');
+
+        // --- LABEL EDITOR ---
+        function setLabelText() {
+            labelBeforeText = labelBeforeInput.value.trim() || 'BEFORE';
+            labelAfterText = labelAfterInput.value.trim() || 'AFTER';
+            sliderLabelBefore.textContent = labelBeforeText;
+            sliderLabelAfter.textContent = labelAfterText;
+            if (!resultSection.classList.contains('hidden') && beforeSrc && afterSrc) {
+                generateStaticImage();
+            }
+        }
+
+        labelBeforeInput.addEventListener('input', setLabelText);
+        labelAfterInput.addEventListener('input', setLabelText);
+        setLabelText();
 
         // --- FUNCIÓN PARA CALCULAR Y ESTABLECER ALTURA DINÁMICA ---
         function setDynamicHeight() {
@@ -494,8 +529,8 @@
                 ctx.font = 'bold 50px sans-serif';
                 ctx.fillStyle = '#333';
                 ctx.textAlign = 'center';
-                ctx.fillText('BEFORE', w1 / 2, 55);
-                ctx.fillText('AFTER', w1 + (w2 / 2), 55);
+                ctx.fillText(labelBeforeText, w1 / 2, 55);
+                ctx.fillText(labelAfterText, w1 + (w2 / 2), 55);
 
                 // Output
                 const dataURL = canvas.toDataURL('image/png');
