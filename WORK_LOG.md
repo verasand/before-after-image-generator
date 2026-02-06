@@ -14,6 +14,34 @@
 
 ---
 
+## 2026-02-06 (React/Vite Migration + Mobile Fix + Pages Deploy)
+- Summary: Migrated the app from single-file HTML/JS to React + Vite, fixed mobile splitter behavior, and restored GitHub Pages deployment.
+- Details:
+  - Fixed double file-picker prompt caused by click bubbling in upload drop zones.
+  - Migrated project architecture to React 18 + Vite 5 with componentized app logic in `src/`.
+  - Ported feature parity: before/after uploads, drag-and-drop, label editor, alignment controls, interactive slider, PNG export, and clear/reset flows.
+  - Fixed mobile slider interaction by replacing state-based dragging with pointer capture (`setPointerCapture` / `releasePointerCapture`) and synchronous drag refs.
+  - Added GitHub Pages workflow to build and deploy `dist/` via GitHub Actions.
+  - Configured Vite `base` dynamically for project-site paths (`/<repo>/`) in Actions.
+  - Updated docs and ignore rules for the new build output.
+- Files changed:
+  - .gitignore
+  - .github/workflows/deploy-pages.yml
+  - README.md
+  - index.html
+  - package.json
+  - package-lock.json
+  - src/App.jsx
+  - src/main.jsx
+  - src/styles.css
+  - vite.config.js
+- Notes / Next steps:
+  - Migrate Tailwind from CDN to local PostCSS/Tailwind setup for production-safe styling.
+  - Add Playwright smoke tests for upload, splitter drag (desktop/mobile), and export flow.
+  - Optionally add save/load project state (JSON + localStorage autosave).
+
+---
+
 ## Template
 - Date: YYYY-MM-DD
 - Summary:
