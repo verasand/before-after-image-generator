@@ -1,56 +1,58 @@
 # Before & After Image Generator
 
-Create clean before/after comparisons from two images. The app lets you preview a draggable split view, fine‑tune alignment, and export a static side‑by‑side image for sharing.
+Create clean before/after comparisons from two images. The app includes a draggable split preview, per-image alignment controls, and PNG export.
 
 ## Highlights
-- Interactive before/after slider with vertical or horizontal split
-- Live label editor (BEFORE / AFTER)
-- Alignment controls (X/Y offset + zoom) per image
-- One‑click download of a static side‑by‑side PNG
-- Mobile‑friendly touch controls
+- Before/after slider with vertical and horizontal split modes
+- Label editor for `BEFORE` and `AFTER`
+- Alignment controls per image (`x`, `y`, `zoom`)
+- Static side-by-side PNG export
+- Drag-and-drop plus click-to-browse upload
+- Desktop and mobile-friendly interactions
+
+## Stack
+- React 18
+- Vite 5
+- Tailwind CSS via CDN (for utility classes)
 
 ## Quick Start
-Open `index.html` in any modern browser and upload two images.
-
-## Local Dev With Live Reload
-If you want mobile testing over Wi‑Fi and auto‑reload on save:
-
 ```powershell
 npm install
 npm run dev
 ```
 
-Then open the site on your phone:
-```
-http://<YOUR_LOCAL_IP>:8000/index.html
+Open:
+```text
+http://localhost:8000
 ```
 
-## How It Works
-Everything lives in a single file (`index.html`):
-- HTML: structure
-- Tailwind CSS (CDN): styling
-- JavaScript: slider logic, alignment, and PNG export
+For LAN/mobile testing:
+```text
+http://<YOUR_LOCAL_IP>:8000
+```
+
+## Build
+```powershell
+npm run build
+npm run preview
+```
 
 ## Project Structure
-```
+```text
 before-after-image-generator/
-├── index.html
-├── package.json
-├── package-lock.json
-├── README.md
-└── examples/
-    ├── input/
-    └── output/
+|- index.html
+|- src/
+|  |- App.jsx
+|  |- main.jsx
+|  |- styles.css
+|- vite.config.js
+|- package.json
+|- README.md
+|- examples/
+   |- input/
+   |- output/
 ```
-
-## Examples
-Input:
-- `examples/input/before.jpg`
-- `examples/input/after.jpg`
-
-Output:
-- `examples/output/output.png`
 
 ## Notes
-- The styling uses Tailwind via CDN, so an internet connection is required unless you bundle CSS locally.
-- For best results, use images with similar aspect ratios.
+- The UI depends on the Tailwind CDN script in `index.html`.
+- For best visual results, use images with similar aspect ratios.
